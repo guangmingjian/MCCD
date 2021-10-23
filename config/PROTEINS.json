@@ -1,0 +1,7 @@
+{
+  "alpha" : 0.5,
+  "batch_size" : 512,
+  "dropout" : 0.3,
+  "gcn_nums" : 3,
+  "lr" : 0.001
+}
