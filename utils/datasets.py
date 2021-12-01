@@ -4,8 +4,6 @@ import torch
 from torch_geometric.datasets import TUDataset
 from torch_geometric.utils import degree
 import torch_geometric.transforms as T
-from dgl.data import LegacyTUDataset
-import dgl
 
 
 class NormalizedDegree(object):
@@ -65,9 +63,4 @@ def get_dataset(name, path, sparse=True, cleaned=False):
     return dataset
 
 
-def get_dgl_ds(ds_name, ds_dir):
-    dataset = LegacyTUDataset(raw_dir=ds_dir, name=ds_name)
-    for i in range(len(dataset)):
-        dataset.graph_lists[i] = dgl.add_self_loop(dataset.graph_lists[i])
-    # print(dataset.graph_labels)
-    return dataset
+
