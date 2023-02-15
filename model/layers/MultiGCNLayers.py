@@ -10,48 +10,57 @@ __author__ = 'mingjian'
 import torch
 import torch.nn as nn
 import torch_geometric.nn as gnn
+import torch.nn.functional as F
 
+gnn_dict = {
+    "GCN": gnn.GCNConv,
+    "GraphSAGE": gnn.SAGEConv,
+    "GAT": gnn.GATConv
+}
 
 
 class MultiGCNLayers(nn.Module):
-
-    def __init__(self, d_in, d_h, d_out, sz_c, sz_l, drop_rate, device, g_norm=False):
+    def __init__(self, d_in, d_h, sz_c, sz_l, drop_rate, device, g_name='GCN', g_norm=False):
         super().__init__()
         self.sz_c = sz_c
         self.d_in = d_in
-        self.d_h = d_h
-        self.d_out = d_out
+        self.d_h = d_h // sz_c
         self.sz_l = sz_l
         self.drop_rate = drop_rate
         self.device = device
-        self.gnn_type = gnn.GCNConv
-        self.gcn_layer = nn.ModuleList(self.channal_block(g_norm))
-        self.layer_norm = nn.LayerNorm(d_out, eps=1e-6)
-        # self.Dropout = nn.Dropout(self.drop_rate)
+        self.gcn_layer = nn.ModuleList(self.channal_block(d_in, self.d_h, g_name, g_norm))
+        self.g_norm = g_norm
+        self.dropout = nn.Dropout(self.drop_rate)
+        self.layer_norm = nn.LayerNorm(self.d_h, eps=1e-6)
+        self.reset_parameters()
 
     def reset_parameters(self):
-        for conv in self.gcn_layer:
-            if type(conv) == self.gnn_type:
-                conv.reset_parameters()
+        for layer in self.gcn_layer:
+            for f in layer:
+                if type(f) in list(gnn_dict.values()) + [gnn.BatchNorm]:
+                    f.reset_parameters()
+        self.layer_norm.reset_parameters()
 
-    def channal_block(self, g_norm):
+    def get_gnn(self, d_in, d_out, g_name):
+        """"""
+        if g_name == 'GAT':
+            return gnn.GATConv(d_in, d_out, 1)  # 1 head
+        else:
+            return gnn_dict[g_name](d_in, d_out)
+
+    def channal_block(self, d_in, d_h, g_name, g_norm):
         layer = []
         for c in range(self.sz_c):
             t_layer = []
             for l in range(self.sz_l):
                 if l == 0:
-                    t_layer.append(self.gnn_type(self.d_in, self.d_h))
-                elif l == (self.sz_l - 1):
-                    t_layer.append(self.gnn_type(self.d_h, self.d_out))
+                    t_layer.append(self.get_gnn(d_in, d_h, g_name))
                 else:
-                    t_layer.append(self.gnn_type(self.d_h, self.d_h))
-                # t_layer.append(nn.Dropout(self.drop_rate))
+                    t_layer.append(self.get_gnn(d_h, d_h, g_name))
+                t_layer.append(nn.Dropout(self.drop_rate))
                 if g_norm:
                     t_layer.append(gnn.GraphSizeNorm())
-                    if l == (self.sz_l - 1):
-                        t_layer.append(gnn.BatchNorm(self.d_out))
-                    else:
-                        t_layer.append(gnn.BatchNorm(self.d_h))
+                    t_layer.append(gnn.BatchNorm(d_h))
                 t_layer.append(nn.ReLU())
             layer.append(nn.ModuleList(t_layer))
             # layer.append(nn.Sequential(*t_layer))
@@ -59,23 +68,21 @@ class MultiGCNLayers(nn.Module):
         # pass
 
     def forward(self, x, edge, batch):
-        channal = torch.empty([self.sz_c, x.size(0), self.d_out]).to(self.device)
+        channal = torch.empty([self.sz_c, x.size(0), self.d_h]).to(self.device)
         # channal = []
-        for i in range(self.sz_c):
+        for c, layer in enumerate(self.gcn_layer):
             h = x
-            m = self.gcn_layer[i]
-            for el in m:
+            for el in layer:
                 rh = h
-                if isinstance(el, self.gnn_type):
+                if type(el) in list(gnn_dict.values()):
                     h = el(h, edge)
+                elif type(el) == gnn.GraphSizeNorm:
+                    h = el(h,batch)
                 else:
                     h = el(h)
                 if isinstance(el, nn.ReLU) and h.size(1) == rh.size(1):
                     h = h + rh  # 残差
-
-            channal[i] = h
-        # channal =
-        batchs = torch.ones([self.sz_c, batch.size(0)]).to(self.device) * batch
-        return self.layer_norm(channal), batchs
+            channal[c] = h
+        return self.layer_norm(channal)
 
 # print(isinstance(model,MultiGCNLayers))

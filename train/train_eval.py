@@ -57,10 +57,12 @@ def cross_validation_with_acc_val_set(ds_name, model_name, dataset, seed, Net,
             val_loader = DataLoader(val_dataset, batch_size, shuffle=False)
             test_loader = DataLoader(test_dataset, batch_size, shuffle=False)
 
-        model = Net(net_config)
+        model = Net(**net_config)
         model.to(device).reset_parameters()
         optimizer = Adam(model.parameters(), lr=lr, weight_decay=weight_decay)
+
         if fold == 0:
+            print(model)
             result_content = result_content + "model={}\n\n".format(model)
 
         if torch.cuda.is_available():

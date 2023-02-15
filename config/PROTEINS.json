@@ -1,7 +1,1 @@
-{
-  "alpha" : 0.5,
-  "batch_size" : 512,
-  "dropout" : 0.3,
-  "gcn_nums" : 3,
-  "lr" : 0.001
-}
+{"arc_type" : "GCN","alpha": 0.25, "batch_size": 128, "beta": 0.1, "dropout": 0.2, "lr": 0.001}

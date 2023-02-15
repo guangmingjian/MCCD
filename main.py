@@ -23,7 +23,7 @@ from model.MCCD import MCCD
 
 def get_parser():
     parser = argparse.ArgumentParser(description="Demo of argparse")
-    parser.add_argument('--ds_name', default='NCI1',choices=["NCI1","NCI109","Mutagenicity",'DD',"PROTEINS"])
+    parser.add_argument('--ds_name', default='NCI1',choices=["NCI1","NCI109","Mutagenicity",'DD',"PROTEINS","REDDIT-MULTI-12K"])
     parser.add_argument('--gpu_id', default='1')
     return parser
 
@@ -48,8 +48,8 @@ if __name__ == '__main__':
     dataset = get_dataset(ds_name, config["data_dir"])
     num_feature, num_classes = dataset.num_features, dataset.num_classes
     net_config["device"] = device
-    net_config["in_dim"] = num_feature
-    net_config["out_dim"] = num_classes
+    net_config["in_channels"] = num_feature
+    net_config["out_channels"] = num_classes
     config["dataset"] = ds_name
     pprint(config)
     model = MCCD

@@ -2,10 +2,11 @@
     "train_config": {
         "kf" : 10,
         "epochs": 300,
-        "batch_size": 256,
+        "batch_size": 64,
         "seed": 8971,
         "patience" : 50,
-        "weight_decay": 1e-5
+        "weight_decay": 1e-5,
+        "lr":0.0005
     },
 
     "model": "MCCD",
@@ -14,12 +15,22 @@
     "out_dir": "out/",
 
      "net_params": {
-            "alpha" : 0.6,
+           "alpha" : 0,
+            "beta" : 0,
             "arc_type" : "ensemble",
-            "dropout" : 0.1,
-            "gcn_nums" : 2,
-            "sz_c" : 3,
-            "gcn_h_dim" : 64,
-            "att_drop_ratio": 0.0
+            "dropout" : 0.3,
+            "gcn_nums" : 3,
+            "sz_c" : 4,
+            "gcn_h_dim" : 128,
+            "att_drop_ratio": 0.0,
+            "graph_norm": true,
+            "d_kv": 32,
+            "gcn_dropout": 0.0,
+            "cnn_out_ker": 18,
+            "hidden_kernel": 16,
+            "cnn_dropout": 0.0,
+            "is_cbn": false,
+            "is_em": false,
+            "is_transformer": false
      }
 }

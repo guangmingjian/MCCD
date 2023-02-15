@@ -12,7 +12,7 @@ python main.py
 
 ## Experimental Report
 
-Reports of experimental results in the paper are listed in the directory "**results/**".
+Reports of experimental results in the paper are listed in the directory "**records/**".
 
 
 
@@ -28,7 +28,7 @@ python LoadModel.py
 
 ## Environment
 
-python3.7
+python3.8
 
 cuda 10.2
 
