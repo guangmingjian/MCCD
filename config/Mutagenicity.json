@@ -1,0 +1,1 @@
+{"alpha": 0.1, "batch_size": 512, "beta": 1e-05, "dropout": 0.3, "lr": 0.001,"graph_norm": false}
